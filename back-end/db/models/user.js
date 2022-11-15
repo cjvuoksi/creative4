@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
-import Deck from "deck.js"; 
+
 const Schema = mongoose.Schema
 const userSchema = new Schema({
 	uid: String,
-    decks: [Deck]
+    decks: [ Schema.Types.ObjectID ]
 })
 
 const User = mongoose.model('User', userSchema)

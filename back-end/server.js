@@ -1,6 +1,14 @@
 const express = require('express');
 const bodyParser = require("body-parser");
+const mongoose = require('mongoose');
+const routes = require('./routes/routes');
+const router = express.Router()
 
+module.exports = router;
+
+
+
+const PORT = 3004; 
 
 const app = express();
 app.use(bodyParser.json());
@@ -12,10 +20,17 @@ app.use(function(req, res, next) {
   next();
 });
 
+mongoose.connect(`mongodb://127.0.0.1:27017/`);
+mongoose.Promise = global.Promise;
+
 app.use(express.static('public'));
 
-app.get("/api4/")
+app.use(express.json());
 
-app.post()
+app.use('/api4', routes)
 
-app.delete()
+
+app.listen(PORT, () => {
+    console.log(`Server Started at ${PORT}`)
+})
+
