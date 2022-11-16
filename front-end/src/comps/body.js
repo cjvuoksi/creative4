@@ -13,10 +13,9 @@ function Body() {
         axios.get('api4/decks').then(response => {
             console.log(response.data); 
             setDecks(response.data); 
+            setUpdate(true); 
         }); 
     }
-    
-    
     
     
     return(

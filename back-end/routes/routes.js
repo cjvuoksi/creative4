@@ -1,5 +1,5 @@
 const express = require('express');
-
+const debug = require('debug')("set-a:"); 
 const router = express.Router(); 
 const Decks = require('../db/models/deck');
 const User = require('../db/models/user');
@@ -12,16 +12,49 @@ router.post('/decks/new', (req, res, next) => {
 });
 
 
-//Get all Method
+//Get all Methods
 router.get('/decks',function(req,res,next){
+    debug(req); 
     Decks.find({}).then(function(user){
         res.send(user);
     }).catch(next);
 });
 
-router.post('/login', (req,res,next) => {
-    User.create(req.body).then(console.log(req.body)).catch(next); 
-}); 
+router.get('/usr',function(req,res,next){
+    User.find({}).then(function(user){
+        res.send(user);
+    }).catch(next);
+});
+
+router.post('/login', (req, res, next) => {
+    debug("Request: " + Object.keys(req.body));
+    debug("UID: " + req.body.uid); 
+    User.countDocuments({"uid": req.body.uid }).then(count => {
+        debug(count); 
+        if (count > 0) {
+            debug("Welcome back!"); 
+            User.find({ uid: req.body.uid }).limit(1).size().then(usr => res.send(usr)); 
+        }
+        else {
+            User.create(req.body).then((response) => { 
+                debug(req.body);
+                debug("New User"); 
+                res.send(response.data);
+            }).catch(next); 
+        }
+    }); 
+    
+});
+
+/*Todo 
+Make a create a new deck that posts to the signed in user
+    - adds the deck ID to the currently logged in user decks array
+Remove the extra user profiles / give db set behavior for users
+Make api calls to edit a deck by deck id 
+    - gets a deck by deck ID and edits its children by id? or perhaps a modify
+        - look into mongodb/mongoose for this
+
+*/
 
 
 //Get by ID Method
