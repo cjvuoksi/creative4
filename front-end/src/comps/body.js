@@ -15,6 +15,9 @@ function Body() {
             console.log("response: " + response.data); 
             setDecks(response.data); 
             setUpdate(true); 
+        }).catch((error) => {
+            console.log(error); 
+            alert("Server not running"); 
         }); 
     }
     

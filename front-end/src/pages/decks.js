@@ -9,7 +9,7 @@ function Decks({ isAuth }) {
     const [deck, setDeck] = useState([]); 
     const [decks, setDecks] = useState([]); 
     const [up, setUp] = useState(false); 
-    const [us, setUs] = useState("user"); 
+    const [user, setUser] = useState(); 
     const [editor, setEditor] = useState(); 
     const [title, setTitle] = useState(); 
     const [list, setList] = useState([]); 
@@ -31,16 +31,20 @@ function Decks({ isAuth }) {
         makeDeck()
     }, [deck]); 
     
-    useEffect(() => {
-        upDeck()
-    }, [decks]); 
+    // useEffect(() => {
+    //     upDeck()
+    // }, [decks]); 
     
+    const getUser = () => {
+        console.log("User: " + user); 
+        console.log("User decks: " + user[0].decks)
+    }
     
     const getDecks = async() => {
         console.log("Get decks");
-        axios.get('/api4/usr/decks', uid).then(response => {
+        axios.post('/api4/usr/decks', {"uid": uid}).then(response => {
             console.log(response.data); 
-            setDecks(response.data); 
+            setUser(response.data); 
         }); 
     }; 
     
@@ -61,8 +65,8 @@ function Decks({ isAuth }) {
     const logIn = async() => {
         axios.post('/api4/login', { uid: uid }).then(response => {
             console.log(response.data); 
-            setDecks(response.data.decks); 
-            console.log("DEBUG: " + response.data.decks); 
+            setUser(response.data); 
+            // console.log("DEBUG: " + response.data.decks); 
         })
     }; 
     
@@ -85,6 +89,7 @@ function Decks({ isAuth }) {
     }
     
     const logDecks = () => {
+        setDecks(user[0].decks); 
         console.log(decks); 
     }
     
@@ -138,7 +143,8 @@ function Decks({ isAuth }) {
     
     
     const upDeck = () => {
-        console.log(Array.isArray(decks)); 
+        setDecks(user.decks); 
+        console.log("Is array deck? " + Array.isArray(decks)); 
         setList(decks.map(item => {
             return (<div key={item._id}>
                     <h1>{item.name}</h1>
@@ -185,6 +191,8 @@ function Decks({ isAuth }) {
             <button onClick={makeDeck}> New Deck </button> 
             <button onClick={logDeck}> Log Deck </button> 
             <button onClick={logDecks}> Log decks </button> 
+            <button onClick={getDecks}> Get Decks </button> 
+            <button onClick={getUser}> Get user </button> 
             {list ? list : "hi"}
             <h1>{title}</h1> 
             {editor}

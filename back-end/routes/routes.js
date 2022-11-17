@@ -22,9 +22,9 @@ router.post('/usr/deck', (req, res) => {
     }); 
 })
 
-router.get('/usr/decks', (req, res) => {
+router.post('/usr/decks', (req, res) => {
     User.find({"uid": req.body.uid}).then(user => {
-        res.send(user.decks)
+        res.send(user); 
     })
 }); 
 
