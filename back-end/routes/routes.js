@@ -5,12 +5,28 @@ const Decks = require('../db/models/deck');
 const User = require('../db/models/user');
 
 //Post Method
-router.post('/decks/new', (req, res, next) => {
-    Decks.create(req.body).then(function(deck){
-        res.send(deck);
-    }).catch(next);
-});
+// router.post('/decks/new', (req, res, next) => {
+//     Decks.create(req.body).then(function(deck){
+//         debug("deck: " + deck); 
+//         res.send(deck);
+//     }).catch(next);
+// });
 
+router.post('/usr/deck', (req, res) => {
+    debug("Request: " + Object.keys(req.body)); 
+    debug("uid: " + req.body.uid); 
+    Decks.create(req.body).then(e => {
+        debug("E: " + e);
+        debug("uid: " + req.body.uid); 
+        User.updateOne({"uid": req.body.uid}, {$push: {"decks": e}}).then(re => res.send(re)); 
+    }); 
+})
+
+router.get('/usr/decks', (req, res) => {
+    User.find({"uid": req.body.uid}).then(user => {
+        res.send(user.decks)
+    })
+}); 
 
 //Get all Methods
 router.get('/decks',function(req,res,next){
@@ -20,13 +36,14 @@ router.get('/decks',function(req,res,next){
     }).catch(next);
 });
 
+
 router.get('/usr',function(req,res,next){
     User.find({}).then(function(user){
         res.send(user);
     }).catch(next);
 });
 
-router.post('/login', (req, res, next) => {
+router.post('/login', (req, res, next) => { //Make this call once on the deck page (useEffect)
     debug("Request: " + Object.keys(req.body));
     debug("UID: " + req.body.uid); 
     User.countDocuments({"uid": req.body.uid }).then(count => {
@@ -45,6 +62,19 @@ router.post('/login', (req, res, next) => {
     }); 
     
 });
+
+router.delete('/deleteall/usr', (req, res) => {
+    User.deleteMany({}).then(e => debug("Deleted all users")); 
+})
+
+router.delete('/deleteall/decks', (req, res) => {
+    Decks.deleteMany().then(e => debug("Deleted all decks")); 
+}); 
+
+router.post('/decks', (req, res) => {
+    
+})
+
 
 /*Todo 
 Make a create a new deck that posts to the signed in user

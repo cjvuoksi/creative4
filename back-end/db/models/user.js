@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema
 const userSchema = new Schema({
 	uid: String,
-    decks: [ Schema.Types.ObjectID ]
+    decks: []
 })
 
 const User = mongoose.model('User', userSchema)
