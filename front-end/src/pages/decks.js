@@ -12,9 +12,8 @@ function Decks({ isAuth }) {
     const [us, setUs] = useState("user"); 
     const [editor, setEditor] = useState(); 
     const [title, setTitle] = useState(); 
-    
-    const auth = getAuth();
-    const user = auth.currentUser;
+    const [list, setList] = useState([]); 
+    const [uid, setUid] = useState(localStorage.getItem("uid")); 
     
     let navigate = useNavigate();
     
@@ -24,6 +23,7 @@ function Decks({ isAuth }) {
         }
         else {
             logIn(); 
+            // getDecks(); 
         }
     }, []);
     
@@ -31,25 +31,22 @@ function Decks({ isAuth }) {
         makeDeck()
     }, [deck]); 
     
+    useEffect(() => {
+        upDeck()
+    }, [decks]); 
+    
+    
     const getDecks = async() => {
         console.log("Get decks");
-        let uIN = user.uid;
-        let usrIn = { uid: uIN }; 
-        axios.post('/api4/login', usrIn).then((response) => {
-            setDeckID(response.data.decks); 
-            console.log(deckID); 
-            let tmp = deckID.map((_id) => {
-                axios.get('/api4/decks/' + _id).then(e => {
-                    return e;  
-                });
-            });
-            // setDeck(tmp); 
+        axios.get('/api4/usr/decks', uid).then(response => {
+            console.log(response.data); 
+            setDecks(response.data); 
         }); 
     }; 
     
     const saveDeck = async() => {
         console.log("Save post"); 
-        let uIN = user.uid; 
+        let uIN = uid; 
         let usrIn = { uid: uIN }; 
         axios.post('/api4/login', usrIn)
     }
@@ -58,22 +55,24 @@ function Decks({ isAuth }) {
         console.log("get users"); 
         axios.get('/api4/usr').then(response => {
             console.log (response.data); 
-        })
-    }
-  
-    const getUs = () => {
-        setUs(user); 
-    }
+        }); 
+    }; 
     
     const logIn = async() => {
-        axios.post('/api4/login', { uid: user.uid}).then(response => console.log(response.data)); 
+        axios.post('/api4/login', { uid: uid }).then(response => {
+            console.log(response.data); 
+            setDecks(response.data.decks); 
+            console.log("DEBUG: " + response.data.decks); 
+        })
     }; 
     
     const postDeck = async(event) => {
         event.preventDefault(); 
         console.log("Posting deck"); 
-        axios.post("/api4/usr/deck", {name: title, cards: deck, uid: user.uid}).then(re => {
+        axios.post("/api4/usr/deck", {name: title, cards: deck, uid: uid}).then(re => {
             console.log(re);
+            setDeck([]); 
+            setTitle(''); 
         }); 
     }; 
     
@@ -83,6 +82,10 @@ function Decks({ isAuth }) {
     
     const logDeck = () => {
         console.log(deck); 
+    }
+    
+    const logDecks = () => {
+        console.log(decks); 
     }
     
     const deleteCard = (event) => {
@@ -133,11 +136,31 @@ function Decks({ isAuth }) {
         setDeck(newDeck); 
     }
     
+    
+    const upDeck = () => {
+        console.log(Array.isArray(decks)); 
+        setList(decks.map(item => {
+            return (<div key={item._id}>
+                    <h1>{item.name}</h1>
+                    <button> Show </button>
+                    {item.cards.map(card => {
+                        return (
+                            <div className="card">
+                                <p>{card.term}</p>
+                                <p>{card.definition}</p> 
+                            </div>
+                        ) 
+                    })}
+                </div>) 
+        }))
+    }
+    
+    
     const makeDeck = () => {
         console.log("Update deck"); 
         setEditor(
             <form onSubmit={postDeck}>
-                <input placeholder="Title" onChange={(event) => {setTitle(event.target.value)}}></input>
+                <input placeholder="Title" onChange={(event) => {setTitle(event.target.value)}} value={title}></input>
                 {deck.map((e,i) => {
                     return (
                     <div className="card" key={i}>
@@ -158,14 +181,16 @@ function Decks({ isAuth }) {
             Decks
             <button onClick={saveDeck}> Submit Post</button>
             <button onClick={getUsers}> Get Users </button>
-            <button onClick={getUs}> {us.uid} </button>
             <button onClick={logIn}> Login </button>
             <button onClick={makeDeck}> New Deck </button> 
             <button onClick={logDeck}> Log Deck </button> 
+            <button onClick={logDecks}> Log decks </button> 
+            {list ? list : "hi"}
             <h1>{title}</h1> 
             {editor}
             <p>{deck.length}</p>
             <p>{Array.isArray(deck) ? "is array" : "notArray"}</p>
+            
             <div>
                 Debug
                 <button onClick={deleteAllUSR}> Delete all usrs </button> 

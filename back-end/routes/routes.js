@@ -30,9 +30,10 @@ router.get('/usr/decks', (req, res) => {
 
 //Get all Methods
 router.get('/decks',function(req,res,next){
-    debug(req); 
-    Decks.find({}).then(function(user){
-        res.send(user);
+    Decks.find({}).then(function(deck){
+        debug("deck:" + deck); 
+        debug("is array? " + Array.isArray(deck)); 
+        res.send(deck);
     }).catch(next);
 });
 
@@ -69,6 +70,7 @@ router.delete('/deleteall/usr', (req, res) => {
 
 router.delete('/deleteall/decks', (req, res) => {
     Decks.deleteMany().then(e => debug("Deleted all decks")); 
+    User.updateMany({},{$set:{ decks: []}}).then(e => debug(e)); 
 }); 
 
 router.post('/decks', (req, res) => {
