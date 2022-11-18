@@ -22,8 +22,7 @@ function Body() {
     }
     
     useEffect(() => {upDeck()}, [decks])
-    
-    
+
     
     const upDeck = () => {
         setList(decks.map(deck => {

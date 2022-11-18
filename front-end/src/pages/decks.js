@@ -12,8 +12,9 @@ function Decks({ isAuth }) {
     const [user, setUser] = useState(); 
     const [editor, setEditor] = useState(); 
     const [title, setTitle] = useState(); 
-    const [list, setList] = useState([]); 
+    const [list, setList] = useState(); 
     const [uid, setUid] = useState(localStorage.getItem("uid")); 
+    const [edit, setEdit] = useState([]); 
     
     let navigate = useNavigate();
     
@@ -31,9 +32,18 @@ function Decks({ isAuth }) {
         makeDeck()
     }, [deck]); 
     
+    useEffect(() => {
+        if (decks) {
+            upDeck();     
+        }
+    }, [decks]); 
+    
     // useEffect(() => {
-    //     upDeck()
-    // }, [decks]); 
+    //     setEdit(); 
+    //     for (let i = 0; i < decks.length; i++) {
+    //         setEdit(prevEdit => ([...prevEdit, false])); 
+    //     }
+    // }, [decks.length])
     
     const getUser = () => {
         console.log("User: " + user); 
@@ -45,6 +55,7 @@ function Decks({ isAuth }) {
         axios.post('/api4/usr/decks', {"uid": uid}).then(response => {
             console.log(response.data); 
             setUser(response.data); 
+            setDecks(user[0].decks); 
         }); 
     }; 
     
@@ -84,12 +95,19 @@ function Decks({ isAuth }) {
         setDeck(prevDeck => ([...prevDeck, {term: '', definition: ''}])); 
     }; 
     
+    const newCards = (event) => {
+        let deckIndex = event.target.dataset.deck; 
+        let newDeck = decks.filter(e => true); 
+        newDeck[deckIndex].cards.push({term: '', definition: ''}); 
+        console.log(newDeck); 
+        setDecks(newDeck); 
+    }
+    
     const logDeck = () => {
         console.log(deck); 
     }
     
     const logDecks = () => {
-        setDecks(user[0].decks); 
         console.log(decks); 
     }
     
@@ -105,6 +123,24 @@ function Decks({ isAuth }) {
         setDeck(newDeck); 
     }
     
+    const deleteCards = (event) => {
+        console.log(event.target.value);
+        let deckIndex = parseInt(event.target.dataset.deck, 10); 
+        let cardIndex = parseInt(event.target.dataset.card, 10); 
+        let newDecks = []; 
+            for (let i = 0; i < decks.length; i++) {
+                let tmp = (i === deckIndex) ? (decks[i].cards.filter((c, i_) => {
+                    console.log(i_ === cardIndex); 
+                    return(i_ !== cardIndex)})) : decks[i].cards; 
+                console.log(tmp); 
+                console.log(deckIndex + " === " + i); 
+                console.log(i === deckIndex); 
+                newDecks.push({name: decks[i].name, cards: tmp, _id: decks[i]._id, __v: decks[i].__v}); 
+            }
+        console.log("New deck: " + newDecks[0]); 
+        setDecks(newDecks); 
+    }
+    
     const deleteAllUSR = async() => {
         axios.delete("/api4/deleteall/usr"); 
     }
@@ -112,6 +148,7 @@ function Decks({ isAuth }) {
         axios.delete("/api4/deleteall/decks"); 
     }
     
+    //Sets term in the new deck
     const setTerm = (event) => {
         let index = event.target.placeholder; 
         let newDeck = deck.map((e,i) => {
@@ -126,6 +163,35 @@ function Decks({ isAuth }) {
         setDeck(newDeck); 
     }
     
+    //Sets terms in the user's decks
+    const setTerms = (event) => {
+        let deckIndex = parseInt(event.target.dataset.deck); 
+        let cardIndex = parseInt(event.target.dataset.card); 
+        console.log("Deck index: " + deckIndex); 
+        console.log("Card index: " + cardIndex); 
+        let newDecks = decks.map((e, i ) => {
+            console.log("Is equal: " + deckIndex == i); 
+            if (deckIndex === i) {
+                return {_id: e._id, name: e.name, __v: e.__v, cards: 
+                (decks[deckIndex].cards.map((c, i_) => {
+                    if (i_ === cardIndex) {
+                        return {term: event.target.value, definition: c.definition}; 
+                    }
+                    else {
+                        console.log(c); 
+                        return c; 
+                    }
+                }))}; 
+            }
+            else {
+                return e; 
+            }
+        })
+        console.log('New deck: ' + newDecks); 
+        setDecks(newDecks); 
+    }
+    
+    //Sets definitions in the new deck
     const setDef = (event) => {
         let index = event.target.placeholder; 
         console.log(index); 
@@ -141,24 +207,66 @@ function Decks({ isAuth }) {
         setDeck(newDeck); 
     }
     
+    //Sets definitions in the user's decks
+    const setDefs = (event) => {
+        let deckIndex = parseInt(event.currentTarget.dataset.deck); 
+        let cardIndex = parseInt(event.target.dataset.card); 
+        console.log("Deck index: " + deckIndex); 
+        console.log("Card index: " + cardIndex); 
+        let newDecks = decks.map((e, i ) => {
+            console.log("Is equal: " + deckIndex == i); 
+            if (deckIndex === i) {
+                return {_id: e._id, name: e.name, __v: e.__v, cards: 
+                (decks[deckIndex].cards.map((c, i_) => {
+                    if (i_ === cardIndex) {
+                        return {term: c.term, definition: event.target.value}; 
+                    }
+                    else {
+                        console.log(c); 
+                        return c; 
+                    }
+                }))}; 
+            }
+            else {
+                return e; 
+            }
+        })
+        console.log('New deck: ' + newDecks); 
+        setDecks(newDecks); 
+    }
+    
+    //Automate and update
     
     const upDeck = () => {
-        setDecks(user.decks); 
-        console.log("Is array deck? " + Array.isArray(decks)); 
-        setList(decks.map(item => {
-            return (<div key={item._id}>
+        console.log("Is array deck? " + Array.isArray(decks)); //Debug
+        
+        setList(decks.map((item, index) => {
+            return (<div key={item._id} className="deck">
                     <h1>{item.name}</h1>
                     <button> Show </button>
-                    {item.cards.map(card => {
+                    <button value={index}> Delete Deck </button>
+                    <button value={index}> Edit Deck </button> 
+                    {/*{item.cards.map(card => {
                         return (
                             <div className="card">
                                 <p>{card.term}</p>
                                 <p>{card.definition}</p> 
                             </div>
-                        ) 
+                        ); 
+                    })}*/}
+                    {item.cards.map((card,i)  => {
+                        return(
+                            <div className="card" key={decks[index]._id + i} data-deck={index} data-card={i}>
+                                <input onChange={setTerms} value={decks[index].cards[i].term} data-deck={index} data-card={i}></input>
+                                <input onChange={setDefs} value={decks[index].cards[i].definition} data-deck={index} data-card={i}></input>
+                                <button type="button" onClick={deleteCards} data-deck={index} data-card={i}>Delete</button>
+                            </div>
+                        )
                     })}
-                </div>) 
-        }))
+                    <button type="button" onClick={newCards} data-deck={index}> Add card </button> 
+                    <button value={index}> Save Deck </button> 
+                </div>) ; 
+        })); 
     }
     
     
@@ -181,7 +289,11 @@ function Decks({ isAuth }) {
             </form>
             )
     }
-  
+    
+    const logList = () => {
+        console.log(list); 
+    }
+    
     return (
         <div>
             Decks
@@ -193,6 +305,8 @@ function Decks({ isAuth }) {
             <button onClick={logDecks}> Log decks </button> 
             <button onClick={getDecks}> Get Decks </button> 
             <button onClick={getUser}> Get user </button> 
+            <button onClick={logList}> Log List </button> 
+            <button onClick={upDeck}> Up Decks </button> 
             {list ? list : "hi"}
             <h1>{title}</h1> 
             {editor}

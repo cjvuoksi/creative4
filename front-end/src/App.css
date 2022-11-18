@@ -36,3 +36,25 @@
     transform: rotate(360deg);
   }
 }
+
+.card {
+  padding: 1em;
+  display: grid;
+  grid-template-columns: 1fr 1fr; 
+  min-width: 300px;
+  max-width: 600px; 
+  background-color: #003d8c; 
+  margin: 1em; 
+  color: whitesmoke;
+}
+
+.deck {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 600px); 
+  justify-content: center;
+  background-color: #506c91; 
+  color: white;
+  width: 80%;
+  margin: auto; 
+}
+
