@@ -5,16 +5,14 @@ import axios from "axios";
 
 
 function Decks({ isAuth }) {
-    const [deckID, setDeckID] = useState([]);  
     const [deck, setDeck] = useState([]); 
     const [decks, setDecks] = useState([]); 
-    const [up, setUp] = useState(false); 
     const [user, setUser] = useState(); 
     const [editor, setEditor] = useState(); 
     const [title, setTitle] = useState(); 
+    const [about, setAbout] = useState(); 
     const [list, setList] = useState(); 
     const [uid, setUid] = useState(localStorage.getItem("uid")); 
-    const [edit, setEdit] = useState([]); 
     
     let navigate = useNavigate();
     
@@ -84,10 +82,12 @@ function Decks({ isAuth }) {
     const postDeck = async(event) => {
         event.preventDefault(); 
         console.log("Posting deck"); 
-        axios.post("/api4/usr/deck", {name: title, cards: deck, uid: uid}).then(re => {
+        axios.post("/api4/usr/deck", {name: title, about: about, edit: false, cards: deck, uid: uid}).then(re => {
             console.log(re);
             setDeck([]); 
-            setTitle(''); 
+            setTitle('');
+            setAbout(''); 
+            getDecks(); 
         }); 
     }; 
     
@@ -107,9 +107,17 @@ function Decks({ isAuth }) {
             axios.delete("/api4/deck/delete" + id); 
         }
         for (let i of decks) {
-            axios.post("/api4/deck/update", {cards: i.cards, _id: i._id})
+            axios.post("/api4/deck/update", {cards: i.cards, _id: i._id, name: i.name, about: i.about}); 
         }
-        axios.post("/api4/usr/update", {uid: uid, decks: decks}); 
+        let newDecks = decks.filter(e => true);
+        newDecks.forEach(e => {
+            e.edit = false; 
+        })
+        setDecks(newDecks);
+        axios.post("/api4/usr/update", {uid: uid, decks: decks}).then(res => {
+            console.log(res); 
+            getDecks(); 
+        })
     }
     
     const newCard = () => {
@@ -195,7 +203,7 @@ function Decks({ isAuth }) {
         let newDecks = decks.map((e, i ) => {
             console.log("Is equal: " + deckIndex == i); 
             if (deckIndex === i) {
-                return {_id: e._id, name: e.name, __v: e.__v, cards: 
+                return {name: e.name, about: e.about, edit: e.edit, _id: e._id, __v: e.__v, cards: 
                 (decks[deckIndex].cards.map((c, i_) => {
                     if (i_ === cardIndex) {
                         return {term: event.target.value, definition: c.definition}; 
@@ -239,7 +247,7 @@ function Decks({ isAuth }) {
         let newDecks = decks.map((e, i ) => {
             console.log("Is equal: " + deckIndex == i); 
             if (deckIndex === i) {
-                return {_id: e._id, name: e.name, __v: e.__v, cards: 
+                return {name: e.name, about: e.about, edit: e.edit, _id: e._id, __v: e.__v, cards: 
                 (decks[deckIndex].cards.map((c, i_) => {
                     if (i_ === cardIndex) {
                         return {term: c.term, definition: event.target.value}; 
@@ -258,6 +266,44 @@ function Decks({ isAuth }) {
         setDecks(newDecks); 
     }
     
+    const setTitles = (e) => {
+        let deckIndex = parseInt(e.target.dataset.deck, 10); 
+        let newDecks = decks.filter(e => true); 
+        newDecks[deckIndex].name = e.target.value;
+        console.log(newDecks[deckIndex].name); 
+        setDecks(newDecks); 
+    }
+    
+    const setAbouts = (e) => {
+        let deckIndex = parseInt(e.target.dataset.deck, 10); 
+        let newDecks = decks.filter(e => true); 
+        newDecks[deckIndex].about = e.target.value;
+        console.log(newDecks[deckIndex].about); 
+        setDecks(newDecks); 
+    }
+    
+    const setEdits = (e) => {
+        let deckIndex = parseInt(e.target.value, 10); 
+        let newDecks = decks.filter(e => true); 
+        newDecks[deckIndex].edit = !newDecks[deckIndex].edit; 
+        console.log(newDecks[deckIndex].edit); 
+        setDeck(newDecks); 
+        logEdits(); 
+        upDeck(); 
+    }
+    
+    const toggleClass = (e) => {
+        e.target.classList.toggle("hide-deck"); 
+    }
+    
+    const logEdits = () => {
+        let edits = [];
+        for (let i of decks) {
+            edits.push(i.edit); 
+        }
+        console.log(edits); 
+    }
+    
     //Automate and update
     
     const upDeck = () => {
@@ -265,32 +311,38 @@ function Decks({ isAuth }) {
         
         setList(decks.map((item, index) => {
             return (<div key={item._id} className="deck">
-                    <h1>{item.name}</h1>
-                    <button> Show </button>
+                    <button value={index} onClick={setEdits}> Edit Deck </button> 
+                    {item.edit ? <input className="title" onChange={setTitles} value={decks[index].name} data-deck={index}></input> : <h1>{item.name}</h1>}
+                    {item.edit ? <input className="about" onChange={setAbouts} value={decks[index].about} data-deck={index}></input> : <p><i>{item.about}</i></p>} 
                     <button value={index}> Delete Deck </button>
-                    <button value={index}> Edit Deck </button> 
-                    {/*{item.cards.map(card => {
+                    <div onClick={toggleClass} className={"hide-deck " + "cards"}><a>◺</a> 
+                    {item.cards.map(card => {
+                        if (!item.edit) {
                         return (
                             <div className="card">
                                 <p>{card.term}</p>
                                 <p>{card.definition}</p> 
                             </div>
                         ); 
-                    })}*/}
+                        }
+                    })}
                     {item.cards.map((card,i)  => {
+                        if (item.edit) {
                         return(
                             <div className="card" key={decks[index]._id + i} data-deck={index} data-card={i}>
                                 <input onChange={setTerms} value={decks[index].cards[i].term} data-deck={index} data-card={i}></input>
                                 <input onChange={setDefs} value={decks[index].cards[i].definition} data-deck={index} data-card={i}></input>
                                 <button type="button" onClick={deleteCards} data-deck={index} data-card={i}>Delete</button>
                             </div>
-                        )
+                        ); 
+                        }
                     })}
-                    <button type="button" onClick={newCards} data-deck={index}> Add card </button> 
-                    <button value={index}> Save Deck </button> 
+                    {item.edit ? <button type="button" onClick={newCards} data-deck={index}> Add card </button> : ''} 
+                    {item.edit ? <button value={postDecks}> Save Deck </button> : ''}
+                    </div>
                 </div>) ; 
         })); 
-    }
+    }; 
     
     
     const makeDeck = () => {
@@ -298,6 +350,7 @@ function Decks({ isAuth }) {
         setEditor(
             <form onSubmit={postDeck}>
                 <input placeholder="Title" onChange={(event) => {setTitle(event.target.value)}} value={title}></input>
+                <input placeholder="Deck description" onChange={(e) => setAbout(e.target.value)} value={about}></input>
                 {deck.map((e,i) => {
                     return (
                     <div className="card" key={i}>
@@ -305,17 +358,17 @@ function Decks({ isAuth }) {
                        <input placeholder={i} onChange={setDef} index={i} value={deck[i].definition}></input>
                        <button type="button" onClick={deleteCard} value={i}>Delete</button>
                     </div>
-                    )
+                    ); 
                 })}
                 <button type="button" onClick={newCard}> New Card </button> 
                 <button> Save </button> 
             </form>
-            )
-    }
+            ); 
+    }; 
     
     const logList = () => {
         console.log(list); 
-    }
+    }; 
     
     return (
         <div>
@@ -343,7 +396,7 @@ function Decks({ isAuth }) {
                 <button onClick={deleteAllDECKS}> Delete all decks </button> 
             </div>
         </div>
-        )
+        ); 
 }
 
-export default Decks
+export default Decks; 

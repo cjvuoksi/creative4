@@ -23,17 +23,23 @@ function Body() {
     
     useEffect(() => {upDeck()}, [decks])
 
+    const toggleTerm = (e) => {
+        e.target.children.forEach(e => {
+            e.classList.toggle("hidden"); 
+        })
+    }
     
     const upDeck = () => {
         setList(decks.map(deck => {
             return (<div key={deck._id}>
                     <h1>{deck.name}</h1>
+                    <p><i>{deck.about}</i></p> 
                     <button> Show </button>
                     {deck.cards.map(card => {
                         return (
-                            <div className="card">
+                            <div className="card" onClick={toggleTerm}>
                                 <p>{card.term}</p>
-                                <p>{card.definition}</p> 
+                                <p className="hidden">{card.definition}</p> 
                             </div>
                         ) 
                     })}

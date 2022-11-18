@@ -75,7 +75,7 @@ router.post("/usr/update", (req, res) => {
 })
 
 router.post("/deck/update", (req, res) => {
-    Decks.updateOne({'_id': req.body._id},{$set:{ cards: req.body.cards}}).then(e => debug(e)); 
+    Decks.updateOne({'_id': req.body._id},{$set:{ cards: req.body.cards, name: req.body.name, about: req.body.about, edit: false}}).then(e => debug(e)); 
 })
 
 router.post("/deck/")
