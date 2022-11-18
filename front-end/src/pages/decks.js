@@ -91,6 +91,27 @@ function Decks({ isAuth }) {
         }); 
     }; 
     
+    const postDecks = async(event) => {
+        event.preventDefault();
+        let decksToDelete = []; 
+        let currDecks = decks.map(e => e._id); 
+        user[0].decks.forEach((e) => {
+            let tmp = currDecks.indexOf(e._id); 
+            if (tmp === -1) {
+                decksToDelete.push(e._id); 
+            }
+        })
+        console.log(decksToDelete); 
+        while(decksToDelete.length !== 0) {
+            let id = decksToDelete.pop(); 
+            axios.delete("/api4/deck/delete" + id); 
+        }
+        for (let i of decks) {
+            axios.post("/api4/deck/update", {cards: i.cards, _id: i._id})
+        }
+        axios.post("/api4/usr/update", {uid: uid, decks: decks}); 
+    }
+    
     const newCard = () => {
         setDeck(prevDeck => ([...prevDeck, {term: '', definition: ''}])); 
     }; 
@@ -135,7 +156,9 @@ function Decks({ isAuth }) {
                 console.log(tmp); 
                 console.log(deckIndex + " === " + i); 
                 console.log(i === deckIndex); 
-                newDecks.push({name: decks[i].name, cards: tmp, _id: decks[i]._id, __v: decks[i].__v}); 
+                if (tmp.length !== 0) {
+                    newDecks.push({name: decks[i].name, cards: tmp, _id: decks[i]._id, __v: decks[i].__v}); 
+                }
             }
         console.log("New deck: " + newDecks[0]); 
         setDecks(newDecks); 
@@ -308,6 +331,7 @@ function Decks({ isAuth }) {
             <button onClick={logList}> Log List </button> 
             <button onClick={upDeck}> Up Decks </button> 
             {list ? list : "hi"}
+            <button onClick={postDecks}> Save Decks </button> 
             <h1>{title}</h1> 
             {editor}
             <p>{deck.length}</p>

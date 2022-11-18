@@ -64,6 +64,22 @@ router.post('/login', (req, res, next) => { //Make this call once on the deck pa
     
 });
 
+router.delete("/deck/delete/:id", (req, res) => {
+    let id = req.params.id; 
+    debug("Id: " + id); 
+    Decks.deleteOne({'_id': id}).then(e => debug("Deleted one deck")); 
+})
+
+router.post("/usr/update", (req, res) => {
+    User.updateOne({'uid': req.body.uid},{$set:{ decks: req.body.decks}}).then(e => debug(e)); 
+})
+
+router.post("/deck/update", (req, res) => {
+    Decks.updateOne({'_id': req.body._id},{$set:{ cards: req.body.cards}}).then(e => debug(e)); 
+})
+
+router.post("/deck/")
+
 router.delete('/deleteall/usr', (req, res) => {
     User.deleteMany({}).then(e => debug("Deleted all users")); 
 })
