@@ -8,6 +8,7 @@ import { auth } from "./firebase-config";
 import Decks from "./pages/decks"; 
 import Footer from './comps/footer.js'; 
 import Body from './comps/body.js'; 
+import Profile from './pages/profile';
 
 function App() {
   const [isAuth, setIsAuth] = useState(localStorage.getItem("isAuth"));
@@ -30,6 +31,7 @@ function App() {
         ) : (
           <>
             <Link to="/decks"> Decks </Link>
+            <Link to="/profile"> Profile </Link> 
             <button onClick={signUserOut}> Log Out</button>
           </>
         )}
@@ -38,6 +40,7 @@ function App() {
         <Route path='/' element={<Body />}/> 
         <Route path="/login" element={<Login setIsAuth={setIsAuth} />} />
         <Route path="/decks" element={<Decks isAuth={isAuth} />} /> 
+        <Route path="/profile" element={<Profile isAuth={isAuth} setIsAuth={setIsAuth} signUserOut={signUserOut}/>} /> 
       </Routes>
       <Footer />
     </Router>

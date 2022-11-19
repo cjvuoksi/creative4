@@ -1,3 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap');
+
+* {
+  padding: 0; 
+  margin: 0; 
+  box-sizing: border-box; 
+  font-family: 'Open Sans', sans-serif;
+
+}
+
 .App {
   text-align: center;
 }
@@ -41,7 +51,6 @@
   padding: 1em;
   display: grid;
   grid-template-columns: 1fr 1fr; 
-  min-width: 300px;
   max-width: 600px; 
   background-color: #003d8c; 
   margin: 1em; 
@@ -73,4 +82,90 @@
 
 .hidden {
   display: none;
+}
+
+input {
+  font-size: 1.2em; 
+  border: none;
+  border-radius: .1em;
+  background-color: transparent;
+  padding-left: 10px;
+  padding-right: 10px; 
+  color: white;
+  display: block;
+}
+
+input:focus {
+  background-color: #90bbfc; 
+  color: black;
+}
+
+.title {
+  font-size: 2em; 
+  color: white; 
+  font-weight: bold;
+  padding-left: 10px; 
+  margin: .5em 0;
+}
+
+.about {
+  font-size: 1em; 
+  font-style: italic; 
+  color: white;
+  padding-left: 10px; 
+  margin: .2em 0;
+}
+
+.term {
+  font-size: 1em; 
+}
+
+.definition {
+  font-size: 1em; 
+}
+
+h1 {
+  
+}
+
+h3 {
+  font-weight: normal; 
+  font-size: 1em; 
+}
+
+.main {
+  min-height: 100vh; 
+}
+
+.add-btn {
+  color: white;
+  background-color: green; 
+  width: 2em; 
+  height: 2em; 
+  border-radius: 1em; 
+  font-size: 1em; 
+  font-weight: bold; 
+  text-align: center; 
+  padding: .2em; 
+}
+
+
+.del-btn {
+  color: white;
+  background-color: red; 
+  width: 2em; 
+  height: 2em; 
+  border-radius: 1em; 
+  font-size: 1em; 
+  font-weight: bold; 
+  text-align: center; 
+  padding: .2em;
+}
+
+.username {
+  color: black;
+}
+
+.email {
+  color: black;
 }

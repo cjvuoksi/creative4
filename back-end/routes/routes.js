@@ -51,7 +51,7 @@ router.post('/login', (req, res, next) => { //Make this call once on the deck pa
         debug(count); 
         if (count > 0) {
             debug("Welcome back!"); 
-            User.find({ uid: req.body.uid }).limit(1).size().then(usr => res.send(usr)); 
+            User.find({ uid: req.body.uid }).then(usr => res.send(usr)); 
         }
         else {
             User.create(req.body).then((response) => { 
@@ -71,14 +71,28 @@ router.delete("/deck/delete/:id", (req, res) => {
 })
 
 router.post("/usr/update", (req, res) => {
-    User.updateOne({'uid': req.body.uid},{$set:{ decks: req.body.decks}}).then(e => debug(e)); 
+    User.updateOne({'uid': req.body.uid},{$set:{ decks: req.body.decks}}).then((e) => debug(e)); 
 })
+
+router.post("/usr/profile", (req, res) => {
+    User.updateOne({"uid": req.body.uid}, {$set:{ name: req.body.name, email: req.body.email}}).then((e) => {
+        User.find({'uid': req.body.uid}).then(re => {
+            res.send(re); 
+        }); 
+    }); 
+}); 
 
 router.post("/deck/update", (req, res) => {
-    Decks.updateOne({'_id': req.body._id},{$set:{ cards: req.body.cards, name: req.body.name, about: req.body.about, edit: false}}).then(e => debug(e)); 
+    Decks.updateOne({'_id': req.body._id},{$set:{ cards: req.body.cards, name: req.body.name, about: req.body.about, edit: false, creator: req.body.creator}}).then(e => debug(e)); 
 })
 
-router.post("/deck/")
+router.delete("/usr/delete/:uid", (req, res) => {
+    User.deleteOne({'uid': req.params.uid}).then(e => {
+        debug(e); 
+    }).catch(err => {
+        res.send(err); 
+    })
+}); 
 
 router.delete('/deleteall/usr', (req, res) => {
     User.deleteMany({}).then(e => debug("Deleted all users")); 

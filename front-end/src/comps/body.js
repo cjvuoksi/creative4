@@ -1,4 +1,3 @@
-import React from "react";
 import { useState, useEffect} from 'react';
 import axios from 'axios';
 
@@ -19,31 +18,33 @@ function Body() {
             console.log(error); 
             alert("Server not running"); 
         }); 
-    }
+    }; 
     
-    useEffect(() => {upDeck()}, [decks])
+    useEffect(() => {upDeck()}, [decks]); 
+    useEffect(() => {fetchDecks()}, []); 
 
     const toggleTerm = (e) => {
-        e.target.children.forEach(e => {
-            e.classList.toggle("hidden"); 
-        })
-    }
+        for (let item of e.currentTarget.children) {
+            item.classList.toggle("hidden"); 
+        }
+    }; 
     
     const upDeck = () => {
         setList(decks.map(deck => {
             return (<div key={deck._id}>
-                    <h1>{deck.name}</h1>
-                    <p><i>{deck.about}</i></p> 
-                    <button> Show </button>
-                    {deck.cards.map(card => {
-                        return (
-                            <div className="card" onClick={toggleTerm}>
-                                <p>{card.term}</p>
-                                <p className="hidden">{card.definition}</p> 
-                            </div>
-                        ) 
-                    })}
-                </div>) 
+                        <h1>{deck.name}</h1>
+                        <h3><i>{deck.about}</i></h3> 
+                        <h3><i>Created by {deck.creator}</i></h3>
+                        <button> Show </button>
+                        {deck.cards.map(card => {
+                            return (
+                                <div className="card" onClick={toggleTerm}>
+                                    <p className="term">{card.term}</p>
+                                    <p className={"hidden " + "definition"}>{card.definition}</p> 
+                                </div>
+                            ); 
+                        })}
+                    </div>); 
         }))
     }
     
@@ -57,12 +58,8 @@ function Body() {
     
     
     return(
-        <div>
-            <a>HAHAHA</a>
-            <button onClick={fetchDecks}>Fetch</button>
-            <button onClick={logDecks}> Log Decks </button> 
-            <button onClick={logList}> Log List </button> 
-            <button onClick={upDeck}> Calls updeck </button> 
+        <div className="main">
+            <button onClick={fetchDecks}>&#128472;</button>
             <div>
                 {list}
             </div>

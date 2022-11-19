@@ -11,6 +11,8 @@ function Login({ setIsAuth }) {
     signInWithPopup(auth, provider).then((result) => {
       localStorage.setItem("isAuth", true);
       localStorage.setItem("uid", getAuth().currentUser.uid); 
+      localStorage.setItem("email", getAuth().currentUser.email);
+      localStorage.setItem("name",getAuth().currentUser.displayName);
       setIsAuth(true);
       navigate("/");
     });
