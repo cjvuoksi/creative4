@@ -67,7 +67,15 @@ router.post('/login', (req, res, next) => { //Make this call once on the deck pa
 router.delete("/deck/delete/:id", (req, res) => {
     let id = req.params.id; 
     debug("Id: " + id); 
-    Decks.deleteOne({'_id': id}).then(e => debug("Deleted one deck")); 
+    if (id) {
+    Decks.deleteOne({'_id': id}).then(e => {
+        debug("Deleted one deck: " + id);
+        res.send(e); 
+    });
+    }
+    else {
+        res.send("Id undefined"); 
+    }
 })
 
 router.post("/usr/update", (req, res) => {
@@ -87,7 +95,8 @@ router.post("/deck/update", (req, res) => {
 })
 
 router.delete("/usr/delete/:uid", (req, res) => {
-    User.deleteOne({'uid': req.params.uid}).then(e => {
+    debug("UID to delete: " + req.params.uid); 
+    User.deleteMany({'uid': req.params.uid}).then(e => {
         debug(e); 
     }).catch(err => {
         res.send(err); 

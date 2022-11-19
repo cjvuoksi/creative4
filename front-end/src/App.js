@@ -17,22 +17,22 @@ function App() {
     signOut(auth).then(() => {
       localStorage.clear();
       setIsAuth(false);
-      window.location.pathname = "/login";
+      window.location.pathname = "/creative4/front-end/build/login";
     });
   };
 
   return (
-    <Router>
-      <nav>
-        <Link to="/"> Home </Link>
+    <Router basename="creative4/front-end/build">
+      <nav className="nav-bar">
+        <Link to="/" className="nav-link"> Home </Link>
 
         {!isAuth ? (
-          <Link to="/login"> Login </Link>
+          <Link to="/login" className="nav-link"> Login </Link>
         ) : (
           <>
-            <Link to="/decks"> Decks </Link>
-            <Link to="/profile"> Profile </Link> 
-            <button onClick={signUserOut}> Log Out</button>
+            <Link to="/decks" className="nav-link"> My Decks </Link>
+            <Link to="/profile" className="nav-link"> Profile </Link> 
+            <Link onClick={signUserOut} className={"nav-link " + "logout"}> Log Out</Link>
           </>
         )}
       </nav>

@@ -75,9 +75,9 @@ function Decks({ isAuth }) {
     const getDecks = async() => {
         console.log("Get decks");
         axios.post('/api4/usr/decks', {"uid": uid}).then(response => {
-            console.log(response.data); 
+            console.log("User : " + Object.keys(response.data[0])); 
             setUser(response.data); 
-            setDecks(user[0].decks); 
+            setDecks(response.data[0].decks); 
         }); 
     }; 
     
@@ -99,18 +99,17 @@ function Decks({ isAuth }) {
     
     const postDeck = async(event) => {
         event.preventDefault(); 
-        console.log("Posting deck"); 
-        axios.post("/api4/usr/deck", {name: title, about: about, edit: false, creator: name, cards: deck,  uid: uid}).then(re => {
+        console.log("Posting deck: " + title + ' ' + about); 
+        axios.post("/api4/usr/deck", {'name': title, 'about': about, 'edit': false, 'creator': name, 'cards': deck,  'uid': uid}).then(re => {
             console.log(re);
             setDeck([]); 
-            setTitle('');
-            setAbout(''); 
+            setTitle();
+            setAbout(); 
             setUpdate(!update); 
         }); 
     }; 
     
-    const postDecks = async(event) => {
-        event.preventDefault();
+    const postDecks = async() => {
         let decksToDelete = []; 
         let currDecks = decks.map(e => e._id); 
         user[0].decks.forEach((e) => {
@@ -131,8 +130,7 @@ function Decks({ isAuth }) {
         newDecks.forEach(e => {
             e.edit = false; 
         })
-        setDecks(newDecks);
-        axios.post("/api4/usr/update", {uid: uid, decks: decks}).then(res => {
+        axios.post("/api4/usr/update", {uid: uid, decks: newDecks}).then(res => {
             console.log(res); 
             getDecks(); 
         })
@@ -152,6 +150,8 @@ function Decks({ isAuth }) {
     
     const logDeck = () => {
         console.log(deck); 
+        console.log(title);
+        console.log(about); 
     }
     
     const logDecks = () => {
@@ -199,7 +199,7 @@ function Decks({ isAuth }) {
     
     //Sets term in the new deck
     const setTerm = (event) => {
-        let index = event.target.placeholder; 
+        let index = event.target.dataset.index;
         let newDeck = deck.map((e,i) => {
             console.log(e); 
             if (index == i) {
@@ -242,7 +242,7 @@ function Decks({ isAuth }) {
     
     //Sets definitions in the new deck
     const setDef = (event) => {
-        let index = event.target.placeholder; 
+        let index = event.target.dataset.index;
         console.log(index); 
         let newDeck = deck.map((e,i) => {
             console.log(e); 
@@ -328,26 +328,34 @@ function Decks({ isAuth }) {
         }
     }
     
-    const deleteDeck = (e) => {
-        console.log()
+    const deleteDeck = async(e) => {
         let deckIndex = e.target.value; 
-        let newDeck = decks.filter(t => true);
-        newDeck.splice(deckIndex, 1); 
-        setDecks(newDeck); 
+        let id = decks[deckIndex]._id;
+        let newDecks = decks.filter(f => true); 
+        newDecks.splice(deckIndex, 1);
+        await setDecks(newDecks);
+        if (window.confirm("This will permanantly delete " + decks[deckIndex].name + ".\n Are you sure?")) {
+            console.log("Deleting ... " + decks[deckIndex].name)
+            axios.delete("/api4/deck/delete/" + id).then(q => {
+                console.log(q); 
+                axios.post("/api4/usr/update", {uid: uid, decks: newDecks}).then(res => {
+                    console.log(res); 
+                    getDecks(); 
+                });
+            })
+        }
     }
     
     //Automate and update
     
     const upDeck = () => {
-        console.log("Is array deck? " + Array.isArray(decks)); //Debug
-        
         setList(decks.map((item, index) => {
             return (<div key={item._id} className="deck">
-                    {item.edit ? <input className="title" onChange={setTitles} value={decks[index].name} data-deck={index}></input> : <h1 className="title">{item.name}</h1>}
-                    {item.edit ? <input className="about" onChange={setAbouts} value={decks[index].about} data-deck={index}></input> : <h3 className="about"><i>{item.about}</i></h3>} 
+                    {item.edit ? <input className="title" onChange={setTitles} value={decks[index].name} data-deck={index} placeholder="Title"></input> : <h1 className="title" >{item.name}</h1>}
+                    {item.edit ? <input className="about" onChange={setAbouts} value={decks[index].about} data-deck={index} placeholder="About"></input> : <h3 className="about" ><i>{item.about}</i></h3>} 
                     <button value={index} onClick={setEdits}> Edit Deck </button> 
                     <button value={index} onClick={deleteDeck}> Delete Deck </button>
-                    {/*<div onClick={toggleClass} className={"hide-deck " + "cards"}><a>◺</a>*/}
+                    <div className="cards">
                     {item.cards.map((card,i) => {
                         if (!item.edit) {
                         return (
@@ -362,15 +370,15 @@ function Decks({ isAuth }) {
                         if (item.edit) {
                         return(
                             <div className="card" key={decks[index]._id + i} data-deck={index} data-card={i}>
-                                <input onChange={setTerms} value={decks[index].cards[i].term} data-deck={index} data-card={i} className="term"></input>
-                                <input onChange={setDefs} value={decks[index].cards[i].definition} data-deck={index} data-card={i} className="definition"></input>
-                                <button type="button" onClick={deleteCards} data-deck={index} data-card={i}>Delete</button>
+                                <input onChange={setTerms} value={decks[index].cards[i].term} data-deck={index} data-card={i} className="term" placeholder="Term"></input>
+                                <input onChange={setDefs} value={decks[index].cards[i].definition} data-deck={index} data-card={i} className="definition" placeholder="Definition"></input>
+                                <button type="button" onClick={deleteCards} data-deck={index} data-card={i} className="del-btn">╳</button>
                             </div>
                         ); 
                         }
                     })}
-                    {item.edit ? <button type="button" onClick={newCards} data-deck={index}> Add card </button> : ''} 
-                    {item.edit ? <button onClick={postDecks}> Save Deck </button> : ''}
+                    </div>
+                    {item.edit ? <button type="button" onClick={newCards} data-deck={index} className="add-btn">+</button> : ''} 
                 </div>) ; 
         })); 
     }; 
@@ -380,14 +388,14 @@ function Decks({ isAuth }) {
         console.log("Update deck"); 
         setEditor(
             <form onSubmit={postDeck} className="deck">
-                <input placeholder="Title" onChange={(event) => {setTitle(event.target.value)}} value={title} className="title"></input>
-                <input placeholder="Deck description" onChange={(e) => setAbout(e.target.value)} value={about} className="about"></input>
+                <input placeholder="Title" onKeyUp={(event) => {setTitle(event.target.value)}} value={title} className="title"></input>
+                <input placeholder="Deck description" onChange={(event) => setAbout(event.target.value)} value={about} className="about"></input>
                 {deck.map((e,i) => {
                     return (
                     <div className="card" key={i}>
-                       <input placeholder={i} onChange={setTerm} index={i} value={deck[i].term} className="term"></input>
-                       <input placeholder={i} onChange={setDef} index={i} value={deck[i].definition} className="definition"></input>
-                       <button type="button" onClick={deleteCard} value={i} className="del-btn">&#735;</button>
+                       <input placeholder="Term" onChange={setTerm} data-index={i} value={deck[i].term} className="term"></input>
+                       <input placeholder="Definition" onChange={setDef} data-index={i} value={deck[i].definition} className="definition"></input>
+                       <button type="button" onClick={deleteCard} value={i} className="del-btn">╳</button>
                     </div>
                     ); 
                 })}
@@ -403,17 +411,17 @@ function Decks({ isAuth }) {
     
     return (
         <div className="main">
-            Decks
+            Decks 
             {/*<button onClick={saveDeck}> Submit Post</button>
             <button onClick={getUsers}> Get Users </button>
             <button onClick={logIn}> Login </button>
             <button onClick={makeDeck}> New Deck </button> 
             <button onClick={logDeck}> Log Deck </button> 
-            <button onClick={logDecks}> Log decks </button> */}
-            <button onClick={getDecks}>&#128472;</button> 
+            <button onClick={logDecks}> Log decks </button>*/}
+            <button onClick={getDecks} title="reload" className="refresh">&#128472;</button> 
             {/*<button onClick={getUser}> Get user </button> 
             <button onClick={logList}> Log List </button> 
-            <button onClick={upDeck}> Up Decks </button> */}
+            <button onClick={upDeck}> Up Decks </button>*/}
             {decks.length !== 0 ? <button onClick={postDecks}>Save Changes</button> : ''}
             {decks.length !== 0 ? list : <p className="alert">Oops! No decks found. Create a new one below</p> }
             {editor}
