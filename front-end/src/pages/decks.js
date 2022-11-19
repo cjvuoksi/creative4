@@ -122,7 +122,7 @@ function Decks({ isAuth }) {
         console.log(decksToDelete); 
         while(decksToDelete.length !== 0) {
             let id = decksToDelete.pop(); 
-            axios.delete("/api4/deck/delete" + id); 
+            axios.delete("/api4/deck/delete/" + id); 
         }
         for (let i of decks) {
             axios.post("/api4/deck/update", {cards: i.cards, _id: i._id, name: i.name, about: i.about, creator: name}); 
