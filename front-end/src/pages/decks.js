@@ -17,11 +17,9 @@ function Decks({ isAuth }) {
     
     let navigate = useNavigate();
     
-    
-    
     useEffect(func => {
         if (!isAuth) {
-            navigate("/creative4/front-end/build/login");
+            navigate("/login");
         }
         else {
             logIn(); 
@@ -205,10 +203,10 @@ function Decks({ isAuth }) {
     const setTerms = (event) => {
         let deckIndex = parseInt(event.target.dataset.deck); 
         let cardIndex = parseInt(event.target.dataset.card); 
-        let newDecks = JSON.parse(JSON.stringify(deck));
+        let newDecks = decks.filter(f => true); 
         newDecks[deckIndex].cards[cardIndex].term = event.target.value; 
         setDecks(newDecks); 
-        console.log("Term: " + newDecks[deckIndex].cards[cardIndex].term); 
+        console.log("Term: " + newDecks[deckIndex].cards[cardIndex].definition);  
     }
     
     //Sets definitions in the new deck
