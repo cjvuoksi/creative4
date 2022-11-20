@@ -163,23 +163,32 @@ function Decks({ isAuth }) {
         setDeck(newDeck); 
     }
     
-    const deleteCards = (event) => {
-        console.log(event.target.value);
-        let deckIndex = parseInt(event.target.dataset.deck, 10); 
-        let cardIndex = parseInt(event.target.dataset.card, 10); 
-        let newDecks = []; 
-            for (let i = 0; i < decks.length; i++) {
-                let tmp = (i === deckIndex) ? (decks[i].cards.filter((c, i_) => {
-                    console.log(i_ === cardIndex); 
-                    return(i_ !== cardIndex)})) : decks[i].cards; 
-                console.log(tmp); 
-                console.log(deckIndex + " === " + i); 
-                console.log(i === deckIndex); 
-                if (tmp.length !== 0) {
-                    newDecks.push({name: decks[i].name, about: decks[i].about, creator: decks[i].creator, cards: tmp, _id: decks[i]._id, __v: decks[i].__v}); 
-                }
-            }
-        console.log("New deck: " + newDecks[0]); 
+    // const deleteCards = (event) => {
+    //     console.log(event.target.value);
+    //     let deckIndex = parseInt(event.target.dataset.deck, 10); 
+    //     let cardIndex = parseInt(event.target.dataset.card, 10); 
+    //     let newDecks = []; 
+    //         for (let i = 0; i < decks.length; i++) {
+    //             let tmp = (i === deckIndex) ? (decks[i].cards.filter((c, i_) => {
+    //                 console.log(i_ === cardIndex); 
+    //                 return(i_ !== cardIndex)})) : decks[i].cards; 
+    //             console.log(tmp); 
+    //             console.log(deckIndex + " === " + i); 
+    //             console.log(i === deckIndex); 
+    //             if (tmp.length !== 0) {
+    //                 newDecks.push({name: decks[i].name, about: decks[i].about, creator: decks[i].creator, cards: tmp, _id: decks[i]._id, __v: decks[i].__v}); 
+    //             }
+    //         }
+    //     console.log("New deck: " + newDecks[0]); 
+    //     setDecks(newDecks); 
+    // }
+    
+    const deleteCards = (e) => {
+        let deckIndex = parseInt(e.target.dataset.deck, 10); 
+        let cardIndex = parseInt(e.target.dataset.card, 10); 
+        let newDecks = decks.filter(f => true); 
+        newDecks[deckIndex].cards.splice(cardIndex, 1); 
+        console.log("New deck: " + newDecks); 
         setDecks(newDecks); 
     }
     
@@ -380,6 +389,7 @@ function Decks({ isAuth }) {
     return (
         <div className="main">
             Decks 
+            {/*
             <button onClick={saveDeck}> Submit Post</button>
             <button onClick={getUsers}> Get Users </button>
             <button onClick={logIn}> Login </button>
@@ -391,7 +401,7 @@ function Decks({ isAuth }) {
             <button onClick={upDeck}> Up Decks </button>
             <button onClick={deleteAllDECKS}> Delete all decks </button>
             <button onClick={deleteAllUSR}> Delete all users </button> 
-            
+            */}
             <button onClick={getDecks} title="reload" className="refresh">&#128472;</button> 
             {decks.length !== 0 ? list : <p className="alert">Oops! No decks found. Create a new one below</p> }
             {editor}

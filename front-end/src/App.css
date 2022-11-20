@@ -60,25 +60,12 @@
   justify-content: center;
   background-color: #204060;
   color: white;
-  width: 80%;
+  width: 100%; 
   margin: auto;
   padding: 1em;
   gap: 1em;
-  border-radius: 1em;
+  border-radius: 0em;
   flex-direction: column;
-}
-
-.hide-deck {
-  max-height: 2em !important; 
-}
-
-.hide-deck:hover {
-  color: yellow;
-}
-
-.cards {
-  overflow-y: hidden; 
-  transition: all 1s ease-in-out; 
 }
 
 .hidden {
@@ -241,4 +228,13 @@ button:hover {
 
 .logout {
   flex-grow: 1 !important;
+}
+
+@media only screen and (min-width: 600px) {
+  .cards {
+    display: grid; 
+    gap: 1em; 
+    width: 100%;
+    grid-template-columns: repeat(auto-fill, 400px);
+  } 
 }

@@ -29,7 +29,7 @@ function Body() {
     
     const upDeck = () => {
         setList(decks.map(deck => {
-            return (<div key={deck._id}>
+            return (<div key={deck._id} className="deck">
                         <h1>{deck.name}</h1>
                         <h3><i>{deck.about}</i></h3> 
                         <h3><i>Created by {deck.creator}</i></h3>
@@ -59,9 +59,7 @@ function Body() {
     return(
         <div className="main">
             <button onClick={fetchDecks} title="reload" className="refresh">&#128472;</button>
-            <div>
-                {list}
-            </div>
+            {list}
         </div>
     )
 }
