@@ -17,7 +17,7 @@ function App() {
     signOut(auth).then(() => {
       localStorage.clear();
       setIsAuth(false);
-      window.location.pathname = "/creative4/front-end/build/login";
+      window.location.pathname = "/creative4/front-end/build/";
     });
   };
 
