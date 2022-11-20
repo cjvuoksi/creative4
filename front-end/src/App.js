@@ -21,6 +21,7 @@ function App() {
     });
   };
 
+  //basename="creative4/front-end/build"
   return (
     <Router basename="creative4/front-end/build">
       <nav className="nav-bar">

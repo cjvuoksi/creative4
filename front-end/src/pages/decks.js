@@ -4,12 +4,11 @@ import axios from "axios";
 
 
 function Decks({ isAuth }) {
-    const [deck, setDeck] = useState([]); 
+    const [deck, setDeck] = useState({name: '', about: '', creator: localStorage.getItem("name"), cards: []}); 
+    const [ids, setId] = useState([]); 
     const [decks, setDecks] = useState([]); 
     const [user, setUser] = useState(); 
     const [editor, setEditor] = useState(); 
-    const [title, setTitle] = useState(); 
-    const [about, setAbout] = useState(); 
     const [list, setList] = useState(); 
     const [uid, setUid] = useState(localStorage.getItem("uid")); 
     const [name, setName] = useState(localStorage.getItem("name"));
@@ -18,20 +17,11 @@ function Decks({ isAuth }) {
     
     let navigate = useNavigate();
     
-    const logIn = async() => {
-        axios.post('/api4/login', { uid: uid, name: name, email: email }).then(response => {
-            console.log(response.data); 
-            setUser(response.data); 
-            setName(response.data[0].name); 
-            setEmail(response.data[0].email);
-            setUpdate(!update); 
-            // console.log("DEBUG: " + response.data.decks); 
-        })
-    };
+    
     
     useEffect(func => {
         if (!isAuth) {
-            navigate("/login");
+            navigate("/creative4/front-end/build/login");
         }
         else {
             logIn(); 
@@ -49,6 +39,7 @@ function Decks({ isAuth }) {
     }, [decks]); 
     
     useEffect(() => {
+        console.log("update effect")
         getDecks();
     }, [update]); 
     
@@ -67,6 +58,18 @@ function Decks({ isAuth }) {
     //     }
     // }, [decks.length])
     
+    
+    const logIn = async() => {
+        await axios.post('/api4/login', { uid: uid, name: name, email: email }).then(response => {
+            console.log("Login response: " + response.data[0].decks); 
+            setUser(response.data); 
+            setName(response.data[0].name); 
+            setEmail(response.data[0].email);
+            setUpdate(!update); 
+            // console.log("DEBUG: " + response.data.decks); 
+        })
+    };
+    
     const getUser = () => {
         console.log("User: " + user); 
         console.log("User decks: " + user[0].decks)
@@ -74,19 +77,22 @@ function Decks({ isAuth }) {
     
     const getDecks = async() => {
         console.log("Get decks");
-        axios.post('/api4/usr/decks', {"uid": uid}).then(response => {
-            console.log("User : " + Object.keys(response.data[0])); 
-            setUser(response.data); 
-            setDecks(response.data[0].decks); 
+        axios.post('/api4/usr/decks', {"uid": uid}).then(async(response) => {
+            console.log("User : " + Object.keys(response.data.decks)); 
+            await setId(response.data.decks);
+            let newDecks = []; 
+            for (let i = 0; i < response.data.decks.length; i++) {
+                axios.get('/api4/decks/' + response.data.decks[i]).then(res => {
+                    newDecks.push(res.data); 
+                    console.log("Decks up: " + Object.keys(res.data)); 
+                    if (i === response.data.decks.length - 1 ) {
+                        setDecks(newDecks); 
+                    }
+                }); 
+            }
         }); 
     }; 
-    
-    const saveDeck = async() => {
-        console.log("Save post"); 
-        let uIN = uid; 
-        let usrIn = { uid: uIN }; 
-        axios.post('/api4/login', usrIn)
-    }
+
   
     const getUsers = async() => {
         console.log("get users"); 
@@ -97,47 +103,33 @@ function Decks({ isAuth }) {
     
      
     
-    const postDeck = async(event) => {
-        event.preventDefault(); 
-        console.log("Posting deck: " + title + ' ' + about); 
-        axios.post("/api4/usr/deck", {'name': title, 'about': about, 'edit': false, 'creator': name, 'cards': deck,  'uid': uid}).then(re => {
+    const postDeck = async(event) => { //Flag
+        event.preventDefault();
+        let title = deck.name ? deck.name : "blank"; 
+        let desc = deck.about ? deck.about : "---"; 
+        console.log("Posting deck: " + deck.name + ' ' + deck.about);
+        axios.post("/api4/usr/deck", {'name': title, 'about': desc, 'edit': false, 'creator': deck.creator, 'cards': deck.cards,  'uid': uid}).then(re => {
             console.log(re);
-            setDeck([]); 
-            setTitle();
-            setAbout(); 
+            setDeck({name: '', about: '', creator: localStorage.getItem("name"), cards: []})
             setUpdate(!update); 
         }); 
     }; 
     
-    const postDecks = async() => {
-        let decksToDelete = []; 
-        let currDecks = decks.map(e => e._id); 
-        user[0].decks.forEach((e) => {
-            let tmp = currDecks.indexOf(e._id); 
-            if (tmp === -1) {
-                decksToDelete.push(e._id); 
-            }
-        })
-        console.log(decksToDelete); 
-        while(decksToDelete.length !== 0) {
-            let id = decksToDelete.pop(); 
-            axios.delete("/api4/deck/delete/" + id); 
-        }
-        for (let i of decks) {
-            axios.post("/api4/deck/update", {cards: i.cards, _id: i._id, name: i.name, about: i.about, creator: name}); 
-        }
-        let newDecks = decks.filter(e => true);
-        newDecks.forEach(e => {
-            e.edit = false; 
-        })
-        axios.post("/api4/usr/update", {uid: uid, decks: newDecks}).then(res => {
-            console.log(res); 
-            getDecks(); 
+    const saveDeck = (e) => {
+        let deckId = e.target.dataset.id; 
+        let index = e.target.dataset.deck; 
+        axios.post("/api4/deck/update", {'name': decks[index].name, 'about': decks[index].about, 'edit': false, 'creator': name, 'cards': decks[index].cards, _id: deckId}).then(re => {
+            let newDecks = decks.filter(f => true);
+            newDecks[index].edit = false; 
+            setDecks(newDecks); 
+            console.log(re); 
         })
     }
     
     const newCard = () => {
-        setDeck(prevDeck => ([...prevDeck, {term: '', definition: ''}])); 
+        let newDeck = JSON.parse(JSON.stringify(deck));
+        newDeck.cards.push({term: '', definition: ''}); 
+        setDeck(newDeck); 
     }; 
     
     const newCards = (event) => {
@@ -150,22 +142,25 @@ function Decks({ isAuth }) {
     
     const logDeck = () => {
         console.log(deck); 
-        console.log(title);
-        console.log(about); 
+        console.log(deck.name);
+        console.log(deck.about); 
     }
     
     const logDecks = () => {
-        console.log(decks); 
+        for (let i of decks) {
+            console.log("Objekt keys " + Object.keys(i)); 
+            for (let j of Object.keys(i)) {
+                console.log("Entry " + j + ": " + i.j)    
+            }
+        }
     }
     
-    const deleteCard = (event) => {
+    const deleteCard = (event) => { 
         let index = parseInt(event.target.value, 10); 
         console.log("index to cut: ", index); 
         console.log("array length: ", deck.length);
-        let newDeck = deck.filter((e, i) => {
-            return i !== index;   
-        })
-        
+        let newDeck = JSON.parse(JSON.stringify(deck));
+        newDeck.cards.splice(index, 1); 
         console.log(newDeck); 
         setDeck(newDeck); 
     }
@@ -198,17 +193,11 @@ function Decks({ isAuth }) {
     }
     
     //Sets term in the new deck
-    const setTerm = (event) => {
+    const setTerm = (event) => { //FLAG
         let index = event.target.dataset.index;
-        let newDeck = deck.map((e,i) => {
-            console.log(e); 
-            if (index == i) {
-                return {term: event.target.value, definition: e.definition}; 
-            }
-            else {
-                return e; 
-            }
-        })
+        console.log(index); 
+        let newDeck = Object.assign({}, deck);
+        newDeck.cards[index].term = event.target.value; 
         setDeck(newDeck); 
     }
     
@@ -216,72 +205,35 @@ function Decks({ isAuth }) {
     const setTerms = (event) => {
         let deckIndex = parseInt(event.target.dataset.deck); 
         let cardIndex = parseInt(event.target.dataset.card); 
-        console.log("Deck index: " + deckIndex); 
-        console.log("Card index: " + cardIndex); 
-        let newDecks = decks.map((e, i ) => {
-            console.log("Is equal: " + deckIndex == i); 
-            if (deckIndex === i) {
-                return {name: e.name, about: e.about, creator: e.creator, edit: e.edit, _id: e._id, __v: e.__v, cards: 
-                (decks[deckIndex].cards.map((c, i_) => {
-                    if (i_ === cardIndex) {
-                        return {term: event.target.value, definition: c.definition}; 
-                    }
-                    else {
-                        console.log(c); 
-                        return c; 
-                    }
-                }))}; 
-            }
-            else {
-                return e; 
-            }
-        })
-        console.log('New deck: ' + newDecks); 
+        let newDecks = JSON.parse(JSON.stringify(deck));
+        newDecks[deckIndex].cards[cardIndex].term = event.target.value; 
         setDecks(newDecks); 
+        console.log("Term: " + newDecks[deckIndex].cards[cardIndex].term); 
     }
     
     //Sets definitions in the new deck
-    const setDef = (event) => {
+    const setDef = (event) => { 
         let index = event.target.dataset.index;
         console.log(index); 
-        let newDeck = deck.map((e,i) => {
-            console.log(e); 
-            if (index == i) {
-                return {term: e.term, definition: event.target.value};   
-            }
-            else {
-                return e; 
-            }
-        })
+        let newDeck = JSON.parse(JSON.stringify(deck));
+        newDeck.cards[index].definition = event.target.value; 
         setDeck(newDeck); 
     }
     
     //Sets definitions in the user's decks
     const setDefs = (event) => {
-        let deckIndex = parseInt(event.currentTarget.dataset.deck); 
+        let deckIndex = parseInt(event.target.dataset.deck); 
         let cardIndex = parseInt(event.target.dataset.card); 
-        console.log("Deck index: " + deckIndex); 
-        console.log("Card index: " + cardIndex); 
-        let newDecks = decks.map((e, i ) => {
-            console.log("Is equal: " + deckIndex == i); 
-            if (deckIndex === i) {
-                return {name: e.name, about: e.about, creator: e.creator, edit: e.edit, _id: e._id, __v: e.__v, cards: 
-                (decks[deckIndex].cards.map((c, i_) => {
-                    if (i_ === cardIndex) {
-                        return {term: c.term, definition: event.target.value}; 
-                    }
-                    else {
-                        console.log(c); 
-                        return c; 
-                    }
-                }))}; 
-            }
-            else {
-                return e; 
-            }
-        })
-        console.log('New deck: ' + newDecks); 
+        let newDecks = decks.filter(f => true); 
+        newDecks[deckIndex].cards[cardIndex].definition = event.target.value; 
         setDecks(newDecks); 
+        console.log("Def: " + newDecks[deckIndex].cards[cardIndex].definition); 
+    }
+    
+    const setTitle = (event) => {
+        let newDeck = JSON.parse(JSON.stringify(deck));
+        newDeck.name = event.target.value; 
+        setDeck(newDeck); 
     }
     
     const setTitles = (e) => {
@@ -290,6 +242,12 @@ function Decks({ isAuth }) {
         newDecks[deckIndex].name = e.target.value;
         console.log(newDecks[deckIndex].name); 
         setDecks(newDecks); 
+    }
+    
+    const setAbout = (event) => {
+        let newDeck = JSON.parse(JSON.stringify(deck));
+        newDeck.about = event.target.value; 
+        setDeck(newDeck); 
     }
     
     const setAbouts = (e) => {
@@ -305,7 +263,7 @@ function Decks({ isAuth }) {
         let newDecks = decks.filter(e => true); 
         newDecks[deckIndex].edit = !newDecks[deckIndex].edit; 
         console.log(newDecks[deckIndex].edit); 
-        setDeck(newDecks); 
+        setDecks(newDecks); 
         logEdits(); 
         upDeck(); 
     }
@@ -333,16 +291,23 @@ function Decks({ isAuth }) {
         let id = decks[deckIndex]._id;
         let newDecks = decks.filter(f => true); 
         newDecks.splice(deckIndex, 1);
-        await setDecks(newDecks);
+        let newIds = ids.filter(f => true); 
+        newIds.splice(deckIndex, 1); 
+        console.log(newDecks); 
         if (window.confirm("This will permanantly delete " + decks[deckIndex].name + ".\n Are you sure?")) {
             console.log("Deleting ... " + decks[deckIndex].name)
+            setDecks(newDecks);   
+            setId(newIds); 
             axios.delete("/api4/deck/delete/" + id).then(q => {
                 console.log(q); 
-                axios.post("/api4/usr/update", {uid: uid, decks: newDecks}).then(res => {
+                axios.post("/api4/usr/update", {uid: uid, decks: newIds}).then(res => {
                     console.log(res); 
                     getDecks(); 
                 });
             })
+        }
+        else {
+            
         }
     }
     
@@ -378,6 +343,7 @@ function Decks({ isAuth }) {
                         }
                     })}
                     </div>
+                    {item.edit ? <button type="button" onClick={saveDeck} data-deck={index} data-id={item._id}>Save</button> : ''}
                     {item.edit ? <button type="button" onClick={newCards} data-deck={index} className="add-btn">+</button> : ''} 
                 </div>) ; 
         })); 
@@ -388,13 +354,13 @@ function Decks({ isAuth }) {
         console.log("Update deck"); 
         setEditor(
             <form onSubmit={postDeck} className="deck">
-                <input placeholder="Title" onKeyUp={(event) => {setTitle(event.target.value)}} value={title} className="title"></input>
-                <input placeholder="Deck description" onChange={(event) => setAbout(event.target.value)} value={about} className="about"></input>
-                {deck.map((e,i) => {
+                <input placeholder="Title" onChange={setTitle} value={deck.name} className="title"></input>
+                <input placeholder="Deck description" onChange={setAbout} value={deck.about} className="about"></input>
+                {deck.cards.map((e,i) => {
                     return (
                     <div className="card" key={i}>
-                       <input placeholder="Term" onChange={setTerm} data-index={i} value={deck[i].term} className="term"></input>
-                       <input placeholder="Definition" onChange={setDef} data-index={i} value={deck[i].definition} className="definition"></input>
+                       <input placeholder="Term" onChange={setTerm} data-index={i} value={deck.cards[i].term} className="term"></input>
+                       <input placeholder="Definition" onChange={setDef} data-index={i} value={deck.cards[i].definition} className="definition"></input>
                        <button type="button" onClick={deleteCard} value={i} className="del-btn">╳</button>
                     </div>
                     ); 
@@ -406,23 +372,29 @@ function Decks({ isAuth }) {
     }; 
     
     const logList = () => {
-        console.log(list); 
+         
+        console.log("User: " + user);
+        console.log("Ids: " + ids); 
+        console.log("Decks: " + decks); 
+        console.log("Deck: " + deck); 
     }; 
     
     return (
         <div className="main">
             Decks 
-            {/*<button onClick={saveDeck}> Submit Post</button>
+            <button onClick={saveDeck}> Submit Post</button>
             <button onClick={getUsers}> Get Users </button>
             <button onClick={logIn}> Login </button>
             <button onClick={makeDeck}> New Deck </button> 
             <button onClick={logDeck}> Log Deck </button> 
-            <button onClick={logDecks}> Log decks </button>*/}
-            <button onClick={getDecks} title="reload" className="refresh">&#128472;</button> 
-            {/*<button onClick={getUser}> Get user </button> 
+            <button onClick={logDecks}> Log decks </button>
+            <button onClick={getUser}> Get user </button> 
             <button onClick={logList}> Log List </button> 
-            <button onClick={upDeck}> Up Decks </button>*/}
-            {decks.length !== 0 ? <button onClick={postDecks}>Save Changes</button> : ''}
+            <button onClick={upDeck}> Up Decks </button>
+            <button onClick={deleteAllDECKS}> Delete all decks </button>
+            <button onClick={deleteAllUSR}> Delete all users </button> 
+            
+            <button onClick={getDecks} title="reload" className="refresh">&#128472;</button> 
             {decks.length !== 0 ? list : <p className="alert">Oops! No decks found. Create a new one below</p> }
             {editor}
         </div>

@@ -18,15 +18,24 @@ router.post('/usr/deck', (req, res) => {
     Decks.create(req.body).then(e => {
         debug("E: " + e);
         debug("uid: " + req.body.uid); 
-        User.updateOne({"uid": req.body.uid}, {$push: {"decks": e}}).then(re => res.send(re)); 
+        User.updateOne({"uid": req.body.uid}, {$push: {"decks": e._id}}).then(re => res.send(re)); 
     }); 
 })
 
 router.post('/usr/decks', (req, res) => {
-    User.find({"uid": req.body.uid}).then(user => {
+    User.findOne({"uid": req.body.uid}, {decks: 1}).then(user => {
+        debug(user); 
         res.send(user); 
     })
 }); 
+
+router.post('/deck/update', (req, res) => {
+    debug("id: " + req.body._id); 
+    Decks.replaceOne({"_id": req.body._id}, { name: req.body.name, about: req.body.about, edit: false, creator: req.body.creator, cards: req.body.cards }).then(re => {
+        debug("Re: " + Object.keys(re)); 
+        res.send(re); 
+    })
+})
 
 //Get all Methods
 router.get('/decks',function(req,res,next){
@@ -36,6 +45,12 @@ router.get('/decks',function(req,res,next){
         res.send(deck);
     }).catch(next);
 });
+
+router.get('/decks/:id', (req, res) => {
+    Decks.findOne({'_id': req.params.id}).then((deck) => {
+        res.send(deck); 
+    })
+})
 
 
 router.get('/usr',function(req,res,next){
@@ -67,7 +82,7 @@ router.post('/login', (req, res, next) => { //Make this call once on the deck pa
 router.delete("/deck/delete/:id", (req, res) => {
     let id = req.params.id; 
     debug("Id: " + id); 
-    if (id) {
+    if (id != 'undefined') {
     Decks.deleteOne({'_id': id}).then(e => {
         debug("Deleted one deck: " + id);
         res.send(e); 
@@ -98,11 +113,15 @@ router.delete("/usr/delete/:uid", (req, res) => {
     debug("UID to delete: " + req.params.uid); 
     User.deleteMany({'uid': req.params.uid}).then(e => {
         debug(e); 
+        res.send(e); 
     }).catch(err => {
         res.send(err); 
     })
 }); 
 
+
+
+//Delete All
 router.delete('/deleteall/usr', (req, res) => {
     User.deleteMany({}).then(e => debug("Deleted all users")); 
 })
@@ -112,35 +131,6 @@ router.delete('/deleteall/decks', (req, res) => {
     User.updateMany({},{$set:{ decks: []}}).then(e => debug(e)); 
 }); 
 
-router.post('/decks', (req, res) => {
-    
-})
 
-
-/*Todo 
-Make a create a new deck that posts to the signed in user
-    - adds the deck ID to the currently logged in user decks array
-Remove the extra user profiles / give db set behavior for users
-Make api calls to edit a deck by deck id 
-    - gets a deck by deck ID and edits its children by id? or perhaps a modify
-        - look into mongodb/mongoose for this
-
-*/
-
-
-//Get by ID Method
-router.get('/getOne/:id', (req, res) => {
-    res.send('Get by ID API')
-})
-
-//Update by ID Method
-router.patch('/update/:id', (req, res) => {
-    res.send('Update by ID API')
-})
-
-//Delete by ID Method
-router.delete('/delete/:id', (req, res) => {
-    res.send('Delete by ID API')
-})
 
 module.exports = router;
