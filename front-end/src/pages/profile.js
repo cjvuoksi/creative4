@@ -48,7 +48,7 @@ function Profile(props) {
                 await axios.delete("/api4/deck/delete/" + id).then(console.log("deleted")); 
             }
         }
-        axios.delete("/api4/usr/delete/" + uid).then(() => {
+        await axios.delete("/api4/usr/delete/" + uid).then(() => {
             console.log("redirect")
         }).catch((error) => console.log(error)); 
         signUserOut();

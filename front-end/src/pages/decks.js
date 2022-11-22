@@ -80,14 +80,13 @@ function Decks({ isAuth }) {
             await setId(response.data.decks);
             let newDecks = []; 
             for (let i = 0; i < response.data.decks.length; i++) {
-                axios.get('/api4/decks/' + response.data.decks[i]).then(res => {
+                await axios.get('/api4/decks/' + response.data.decks[i]).then(res => {
                     newDecks.push(res.data); 
                     console.log("Decks up: " + Object.keys(res.data)); 
-                    if (i === response.data.decks.length - 1 ) {
-                        setDecks(newDecks); 
-                    }
                 }); 
             }
+            setDecks(newDecks); 
+            console.log("set"); 
         }); 
     }; 
 
